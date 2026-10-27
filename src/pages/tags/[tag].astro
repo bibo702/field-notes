@@ -1,0 +1,18 @@
+---
+import Base from '../../layouts/Base.astro';
+import PostList from '../../components/PostList.astro';
+import { publishedPosts, postTags } from '../../lib/posts';
+import { withBase } from '../../lib/urls';
+export async function getStaticPaths() {
+  const posts = await publishedPosts();
+  return postTags(posts).map((tag) => ({
+    params: { tag },
+    props: { tag, posts: posts.filter((post) => post.data.tags.includes(tag)) },
+  }));
+}
+const { tag, posts } = Astro.props;
+---
+<Base title={`Notes on ${tag}`} description={`Explore ${posts.length} ${posts.length === 1 ? 'note' : 'notes'} on ${tag} in Field Notes.`}>
+  <div class="page-heading"><a class="back-link" href={withBase('tags/')}>← All topics</a><p class="eyebrow">A thread in the notebook</p><h1>Notes on <em>{tag}.</em></h1><p>{posts.length} {posts.length === 1 ? 'note' : 'notes'} to explore.</p></div>
+  <section aria-labelledby="topic-notes"><h2 id="topic-notes" class="sr-only">Notes tagged {tag}</h2><PostList posts={posts} /></section>
+</Base>

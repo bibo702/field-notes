@@ -1,0 +1,17 @@
+---
+import Base from '../../layouts/Base.astro';
+import { publishedPosts, postTags } from '../../lib/posts';
+import { tagUrl } from '../../lib/urls';
+const posts = await publishedPosts();
+const tags = postTags(posts);
+---
+<Base title="Tags" description="Find a thread to follow. Browse Field Notes by topic.">
+  <div class="page-heading"><p class="eyebrow">Find a thread</p><h1>Ideas, <em>connected.</em></h1><p>A few ways into the notebook. Pick a topic and see where it leads.</p></div>
+  <section aria-labelledby="topics-heading"><div class="section-heading"><h2 id="topics-heading">All topics</h2><span class="eyebrow">{tags.length} topics</span></div>
+    <ul class="topic-grid">{tags.map((tag, index) => {
+      const count = posts.filter((post) => post.data.tags.includes(tag)).length;
+      return <li><a href={tagUrl(tag)}><span class="topic-number">{String(index + 1).padStart(2, '0')}</span><h3>{tag}</h3><span>{count} {count === 1 ? 'note' : 'notes'} <span aria-hidden="true">↗</span></span></a></li>;
+    })}</ul>
+    {!tags.length && <p class="empty-state">Topics will appear alongside the first published notes.</p>}
+  </section>
+</Base>

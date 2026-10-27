@@ -1,0 +1,25 @@
+---
+import Base from '../layouts/Base.astro';
+import PostList from '../components/PostList.astro';
+import { publishedPosts } from '../lib/posts';
+import { withBase } from '../lib/urls';
+const posts = await publishedPosts();
+---
+<Base>
+  <section class="home-intro" aria-labelledby="welcome">
+    <div class="eyebrow intro-kicker"><span class="accent-line"></span>A notebook for the everyday</div>
+    <h1 id="welcome">Small discoveries.<br /><em>Lasting understanding.</em></h1>
+    <p>A quiet place to think out loud, connect the dots, and keep the lessons that might otherwise slip away.</p>
+    <a class="text-link" href={withBase('about/')}>The idea behind Field Notes <span aria-hidden="true">↗</span></a>
+    <span class="intro-decoration" aria-hidden="true">✳</span>
+  </section>
+  <section aria-labelledby="latest-notes" class="notes-section">
+    <div class="section-heading"><h2 id="latest-notes">The notebook</h2><span class="eyebrow">{String(posts.length).padStart(2, '0')} {posts.length === 1 ? 'note' : 'notes'} & counting</span></div>
+    <div class="starter-notice"><span class="notice-dot" aria-hidden="true"></span><p>A starting point, not a personal history. These instructional notes show what you can make here. Replace them with your own.</p></div>
+    {posts.length ? <PostList posts={posts} /> : <p class="empty-state">A fresh page. The first note is still to come.</p>}
+  </section>
+  <aside class="subscribe-strip" aria-label="Follow the notebook">
+    <div><h2>Good notes are worth keeping.</h2><p>No inbox noise. Follow along in your favorite feed reader.</p></div>
+    <a class="text-link" href={withBase('rss.xml')}>Read via RSS <span aria-hidden="true">↗</span></a>
+  </aside>
+</Base>

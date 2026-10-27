@@ -1,0 +1,23 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../config';
+import { withBase } from '../lib/urls';
+---
+<Base title="About" description="The idea behind Field Notes: a small, thoughtful space for learning in public.">
+  <div class="page-heading"><p class="eyebrow">Behind the notebook</p><h1>A place to pay<br /><em>closer attention.</em></h1><p>Not every useful idea needs to become a grand theory. Sometimes it just needs a place to land.</p></div>
+  <div class="about-grid">
+    <aside class="author-card"><span class="eyebrow">The author</span><div class="author-monogram" aria-hidden="true">fn.</div><h2>{site.author}</h2><p>{site.authorDescription}</p></aside>
+    <div class="prose">
+      <h2>What belongs here</h2>
+      <p>Field Notes is a small, independent notebook for things learned along the way: a useful technique, a question worth revisiting, or an explanation that finally clicks.</p>
+      <p>The emphasis is on clarity over certainty. A short note with one concrete example can be more useful than a polished essay that never leaves the drafts folder.</p>
+      <h2>A note about the starter content</h2>
+      <p>This site currently includes clearly labeled instructional examples. They explain ways to write and publish a learning note; they do not describe the author’s employment, projects, or personal experiences.</p>
+      <p>These examples are a starting point for the notebook. Original learning notes will live alongside them as the collection grows.</p>
+      <h2>Share the lesson, not the confidential details</h2>
+      <p>Use your own words and permission-safe examples. Leave out credentials, customer information, internal code, and anything you are not authorized to share. When in doubt, keep the note private.</p>
+      <hr />
+      <p><a href={withBase()}>Explore the notebook →</a> or <a href={withBase('rss.xml')}>follow the RSS feed</a>.</p>
+    </div>
+  </div>
+</Base>

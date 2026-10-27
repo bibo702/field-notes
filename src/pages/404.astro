@@ -1,0 +1,7 @@
+---
+import Base from '../layouts/Base.astro';
+import { withBase } from '../lib/urls';
+---
+<Base title="Page not found" description="This page isn't in the notebook. Head back to Field Notes." noindex>
+  <section class="not-found"><p class="eyebrow">404 / A loose page</p><h1>This note<br /><em>isn’t here.</em></h1><p>The link may have changed, or this page hasn’t been written yet. There are still a few good things in the notebook.</p><a class="button-link" href={withBase()}>Back to the notes <span aria-hidden="true">→</span></a></section>
+</Base>
