@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="920" viewBox="0 0 640 920" role="img" aria-labelledby="title description">
+  <title id="title">Three complementary Warehouse protections</title>
+  <desc id="description">Network protection restricts the inbound path through a private endpoint with public access blocked. Customer-managed keys in Key Vault protect data encryption keys for persisted OneLake data and Warehouse metadata, not ephemeral compute caches. SQL audit events produce evidence for investigation and review, not an access gate.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M1 1L8 5L1 9" fill="none" stroke="#64756f" stroke-width="2"/></marker>
+  </defs>
+  <rect width="640" height="920" rx="20" fill="#f7faf8"/>
+  <g font-family="system-ui, sans-serif">
+    <text x="32" y="44" font-size="16" font-weight="700" letter-spacing="2" fill="#42635a">FIELD NOTES / FABRIC WAREHOUSE</text>
+    <text x="32" y="84" font-size="28" font-weight="700" fill="#153d33">Three controls. Three different jobs.</text>
+    <g fill="#fff" stroke="#bfd3c9" stroke-width="2">
+      <rect x="28" y="112" width="584" height="224" rx="12"/>
+      <rect x="28" y="356" width="584" height="250" rx="12"/>
+      <rect x="28" y="626" width="584" height="220" rx="12"/>
+    </g>
+    <g font-size="24" font-weight="700" fill="#153d33">
+      <text x="50" y="151">01 / NETWORK: where from?</text>
+      <text x="50" y="395">02 / KEYS: who controls them?</text>
+      <text x="50" y="665">03 / AUDIT: what happened?</text>
+    </g>
+    <g font-size="20" fill="#405d53">
+      <text x="50" y="190">Approved client network</text>
+      <text x="50" y="240">Private endpoint + DNS</text>
+      <text x="50" y="290">Fabric Warehouse</text>
+      <text x="50" y="318" font-size="17">Private-only design: also block public access.</text>
+      <text x="50" y="436">Your key in Azure Key Vault</text>
+      <text x="50" y="486">Protects data encryption keys</text>
+      <text x="50" y="536">OneLake data + Warehouse metadata</text>
+      <text x="50" y="576" font-size="17">Ephemeral caches use Microsoft-managed keys.</text>
+      <text x="50" y="706">Selected SQL events</text>
+      <text x="50" y="756">Audit files in OneLake</text>
+      <text x="50" y="806">Review, investigate, and learn</text>
+      <text x="50" y="832" font-size="17">Enable explicitly. Verify a test event is recorded.</text>
+    </g>
+    <g stroke="#64756f" stroke-width="2" marker-end="url(#arrow)">
+      <path d="M64 199V219"/><path d="M64 249V269"/>
+      <path d="M64 445V465"/><path d="M64 495V515"/>
+      <path d="M64 715V735"/><path d="M64 765V785"/>
+    </g>
+    <text x="32" y="886" font-size="18" font-weight="700" fill="#153d33">All three complement identity and permissions.</text>
+  </g>
+</svg>

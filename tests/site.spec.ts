@@ -100,11 +100,22 @@ test('Fabric Warehouse note is first, sourced, and includes its original diagram
   await expect(page.locator('.article-notice')).toHaveCount(0);
   const diagram = page.getByRole('img', { name: /An original five-step diagram/ });
   await expect(diagram).toBeVisible();
-  expect(await diagram.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+  await diagram.scrollIntoViewIfNeeded();
+  await expect.poll(() => diagram.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
   const svg = await page.request.get(await diagram.getAttribute('src') ?? '');
   expect(svg.status()).toBe(200);
   expect(await svg.text()).toContain('Five questions for Fabric Warehouse SQL access');
-  await expect(page.locator('.article-content a[href^="https://learn.microsoft.com/"]')).toHaveCount(7);
+  const protection = page.getByRole('img', { name: /An original diagram with three independent controls/ });
+  await expect(protection).toBeVisible();
+  await protection.scrollIntoViewIfNeeded();
+  await expect.poll(() => protection.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+  const protectionSvg = await page.request.get(await protection.getAttribute('src') ?? '');
+  expect(protectionSvg.status()).toBe(200);
+  expect(await protectionSvg.text()).toContain('Three complementary Warehouse protections');
+  for (const heading of ['Protect the network path', 'Know what customer-managed keys protect', 'Audit what happened']) {
+    await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
+  }
+  await expect(page.locator('.article-content a[href^="https://learn.microsoft.com/"]')).toHaveCount(13);
   const feed = await page.request.get(new URL('rss.xml', test.info().project.use.baseURL).href);
   expect(await feed.text()).toContain('fabric-warehouse-identity-permissions');
 });
