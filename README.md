@@ -33,11 +33,12 @@ editing. No external fonts or runtime services are required.
   starter-content explanation when ready.
 - **Colors, typography, spacing:** `src/styles/global.css`.
 - **Icon:** `public/favicon.svg`.
-- **Posts:** `src/content/posts/*.md`. Remove or adapt the three instructional
-  samples, then set `starter: false` on your own work.
+- **Posts:** `src/content/posts/*.md`. The first technical note covers Fabric
+  Warehouse identity and permissions. Three older instructional samples can be
+  removed or adapted; set `starter: false` on your own work.
 
 The homepage’s starter notice is in `src/pages/index.astro`; remove or rewrite it
-when the notebook contains your own posts. Themes follow the system until a
+if you remove all instructional examples. Themes follow the system until a
 reader explicitly chooses one. A blocked browser storage API does not break the
 switch; the choice simply cannot persist between visits.
 
@@ -81,9 +82,11 @@ new template links and public assets.
 
 Markdown content cannot call this helper. Use portable **relative** internal
 links. From `/posts/my-note/`, `../../about/` points to About at either the domain
-root or a repository subpath; `../another-note/` points to another post. An image
-at `public/images/example.svg` can be referenced as
-`![Descriptive alternative text](../../images/example.svg)`. Do not hardcode
+root or a repository subpath; `../another-note/` points to another post.
+Markdown images are resolved relative to the source file by Astro. Store an image
+at `src/assets/example.svg` and reference it from a post as
+`![Descriptive alternative text](../../assets/example.svg)`. Astro emits the asset
+with the configured deployment base. Do not hardcode
 root paths such as `/about/` into Markdown for a project site. The verification
 command checks all generated local `href`/`src` links and heading fragments.
 The RSS feed includes plain-text descriptions and article links, not full HTML.

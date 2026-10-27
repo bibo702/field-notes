@@ -7,7 +7,7 @@ test('navigation, article, tags, feed, 404, and keyboard skip link', async ({ pa
   await expect(page.getByRole('link', { name: 'Skip to content' })).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(page.locator('#main')).toBeFocused();
-  await expect(page.locator('.post-row')).toHaveCount(3);
+  await expect(page.locator('.post-row')).toHaveCount(4);
   await page.getByRole('link', { name: /A useful note starts/ }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('A useful note starts with one good question');
   await expect(page.locator('pre.astro-code')).toBeVisible();
@@ -63,7 +63,7 @@ test('blocked storage keeps system preference and an in-memory theme choice', as
 
 test('mobile layout has no horizontal page overflow', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
-  for (const route of ['./', 'about/', 'tags/', 'posts/writing-a-useful-learning-note/', '404.html']) {
+  for (const route of ['./', 'about/', 'tags/', 'posts/writing-a-useful-learning-note/', 'posts/fabric-warehouse-identity-permissions/', '404.html']) {
     await page.goto(route);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible();
@@ -74,7 +74,7 @@ test('content remains readable with JavaScript disabled', async ({ browser, base
   const context = await browser.newContext({ javaScriptEnabled: false, colorScheme: 'dark' });
   const page = await context.newPage();
   await page.goto(baseURL!);
-  await expect(page.locator('.post-row')).toHaveCount(3);
+  await expect(page.locator('.post-row')).toHaveCount(4);
   await expect(page.locator('#theme-toggle')).toBeHidden();
   expect(await page.locator('html').evaluate((element) => getComputedStyle(element).colorScheme)).toBe('dark');
   await context.close();
@@ -91,4 +91,20 @@ test('desktop and mobile visual captures', async ({ page }, testInfo) => {
   await page.screenshot({ path: testInfo.outputPath('home-mobile.png'), fullPage: true });
   await page.goto('posts/writing-a-useful-learning-note/');
   await page.screenshot({ path: testInfo.outputPath('article-mobile.png'), fullPage: true });
+});
+
+test('Fabric Warehouse note is first, sourced, and includes its original diagram', async ({ page }) => {
+  await page.goto('./');
+  await expect(page.locator('.post-row').first()).toContainText('Secure your Fabric Warehouse');
+  await page.getByRole('link', { name: 'Secure your Fabric Warehouse: identity and permissions' }).click();
+  await expect(page.locator('.article-notice')).toHaveCount(0);
+  const diagram = page.getByRole('img', { name: /An original five-step diagram/ });
+  await expect(diagram).toBeVisible();
+  expect(await diagram.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+  const svg = await page.request.get(await diagram.getAttribute('src') ?? '');
+  expect(svg.status()).toBe(200);
+  expect(await svg.text()).toContain('Five questions for Fabric Warehouse SQL access');
+  await expect(page.locator('.article-content a[href^="https://learn.microsoft.com/"]')).toHaveCount(7);
+  const feed = await page.request.get(new URL('rss.xml', test.info().project.use.baseURL).href);
+  expect(await feed.text()).toContain('fabric-warehouse-identity-permissions');
 });

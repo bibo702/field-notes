@@ -15,7 +15,7 @@ const posts = await publishedPosts();
   </section>
   <section aria-labelledby="latest-notes" class="notes-section">
     <div class="section-heading"><h2 id="latest-notes">The notebook</h2><span class="eyebrow">{String(posts.length).padStart(2, '0')} {posts.length === 1 ? 'note' : 'notes'} & counting</span></div>
-    <div class="starter-notice"><span class="notice-dot" aria-hidden="true"></span><p>A starting point, not a personal history. These instructional notes show what you can make here. Replace them with your own.</p></div>
+    <div class="starter-notice"><span class="notice-dot" aria-hidden="true"></span><p>Practical notes on technology and daily learning. Older posts labeled “Instructional starter” are writing examples, not personal work stories.</p></div>
     {posts.length ? <PostList posts={posts} /> : <p class="empty-state">A fresh page. The first note is still to come.</p>}
   </section>
   <aside class="subscribe-strip" aria-label="Follow the notebook">
