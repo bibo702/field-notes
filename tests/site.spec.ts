@@ -15,7 +15,7 @@ test('navigation, article, tags, feed, 404, and keyboard skip link', async ({ pa
   await page.locator('.topic-grid').getByRole('link').filter({ hasText: 'learning' }).click();
   await expect(page.locator('.post-row')).toHaveCount(2);
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'About' }).click();
-  await expect(page.getByText('Editable author placeholder')).toBeVisible();
+  await expect(page.locator('.author-card h2')).toHaveText('habibselmane');
   const feed = await page.request.get(new URL('rss.xml', test.info().project.use.baseURL).href);
   expect(feed.status()).toBe(200);
   expect(await feed.text()).not.toContain('draft-template');
