@@ -61,6 +61,27 @@ test('blocked storage keeps system preference and an in-memory theme choice', as
   expect(errors).toEqual([]);
 });
 
+test('data platforms presentation navigates, reveals notes, and updates its workload guide', async ({ page }) => {
+  await page.goto('data-platforms/');
+  await expect(page).toHaveTitle('How analytics engines really differ — Field Notes');
+  await expect(page.locator('.slide')).toHaveCount(13);
+  await expect(page.locator('.slide.active h1')).toContainText('One question');
+
+  await page.keyboard.press('ArrowRight');
+  await expect(page.locator('.slide.active h2')).toContainText('Name the layer first');
+  await page.getByRole('button', { name: 'Notes' }).click();
+  await expect(page.locator('.slide.active .notes')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Notes' })).toHaveAttribute('aria-expanded', 'true');
+
+  for (let i = 0; i < 10; i++) await page.getByRole('button', { name: 'Next slide' }).click();
+  await expect(page.locator('.slide.active')).toHaveAttribute('aria-label', 'Slide 12 of 13');
+  await page.getByRole('button', { name: 'Spiky dashboard peak' }).click();
+  await expect(page.locator('#scenario-result')).toContainText('Find the queue before changing the size');
+
+  await page.setViewportSize({ width: 375, height: 812 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
 test('mobile layout has no horizontal page overflow', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   for (const route of ['./', 'about/', 'tags/', 'posts/writing-a-useful-learning-note/', 'posts/fabric-warehouse-identity-permissions/', '404.html']) {

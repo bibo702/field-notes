@@ -1,0 +1,641 @@
+---
+const title = 'How analytics engines really differ';
+const description = 'An interactive, beginner-friendly guide to VertiPaq, Databricks Metric Views and SQL Warehouses, Snowflake, and Fabric Warehouse.';
+import { withBase } from '../lib/urls';
+const canonical = new URL(withBase('data-platforms/'), Astro.site);
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      (() => {
+        const param = new URLSearchParams(window.location.search).get("scoutTheme");
+        const theme =
+          param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", theme);
+      })();
+    </script>
+    <title>{title} — Field Notes</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:title" content={`${title} — Field Notes`} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Field Notes" />
+    <meta property="og:url" content={canonical} />
+    <style>
+      :root {
+        color-scheme: light;
+        --cp-bg: #f7f4ef;
+        --cp-bg-elevated: #fcfbf8;
+        --cp-surface: #ffffff;
+        --cp-surface-soft: #f5f5f5;
+        --cp-border: #dedede;
+        --cp-border-strong: #919191;
+        --cp-text: #242424;
+        --cp-text-muted: #5c5c5c;
+        --cp-text-soft: #6f6f6f;
+        --cp-accent: #b11f4b;
+        --cp-accent-hover: #9a1a41;
+        --cp-accent-soft: rgba(177, 31, 75, 0.08);
+        --cp-accent-fg: #ffffff;
+        --cp-success: #16a34a;
+        --cp-danger: #dc2626;
+        --cp-warning: #f59e0b;
+        --cp-link: #0078d4;
+        --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+        --cp-overlay: rgba(255, 255, 255, 0.8);
+        --cp-panel: rgba(255, 255, 255, 0.86);
+        --cp-panel-strong: rgba(255, 255, 255, 0.96);
+        --cp-sheen: rgba(255, 255, 255, 0.55);
+        --cp-highlight: rgba(177, 31, 75, 0.12);
+      }
+      html[data-theme="dark"] {
+        color-scheme: dark;
+        --cp-bg: #3d3b3a;
+        --cp-bg-elevated: #343231;
+        --cp-surface: #292929;
+        --cp-surface-soft: #2e2e2e;
+        --cp-border: #474747;
+        --cp-border-strong: #5f5f5f;
+        --cp-text: #dedede;
+        --cp-text-muted: #919191;
+        --cp-text-soft: #b0b0b0;
+        --cp-accent: #fd8ea1;
+        --cp-accent-hover: #fb7b91;
+        --cp-accent-soft: rgba(253, 142, 161, 0.14);
+        --cp-accent-fg: #1a1a1a;
+        --cp-success: #4ade80;
+        --cp-danger: #f87171;
+        --cp-warning: #fbbf24;
+        --cp-link: #4da6ff;
+        --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+        --cp-overlay: rgba(41, 41, 41, 0.88);
+        --cp-panel: rgba(41, 41, 41, 0.72);
+        --cp-panel-strong: rgba(41, 41, 41, 0.96);
+        --cp-sheen: rgba(255, 255, 255, 0.04);
+        --cp-highlight: rgba(253, 142, 161, 0.12);
+      }
+      *, *::before, *::after { box-sizing: border-box; }
+      html { background: var(--cp-bg); scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background: var(--cp-bg);
+        color: var(--cp-text);
+        font: 16px/1.55 "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      button { color: inherit; font: inherit; }
+      a { color: var(--cp-link); }
+      .deck { min-height: 100vh; display: grid; grid-template-rows: auto 1fr auto; }
+      .topbar, .controls {
+        width: min(1200px, 100%);
+        margin: 0 auto;
+        padding: 18px 36px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+      }
+      .topbar { color: var(--cp-text-muted); font-size: .82rem; }
+      .brand { display: flex; align-items: center; gap: 10px; color: var(--cp-text); text-decoration: none; }
+      .brand-mark { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid var(--cp-border-strong); border-radius: .625rem; color: var(--cp-accent); font-weight: 700; }
+      .top-actions, .controls, .control-group { display: flex; align-items: center; gap: 12px; }
+      .icon-button, .nav-button, .toc-button {
+        border: 1px solid var(--cp-border);
+        border-radius: .625rem;
+        background: var(--cp-surface);
+        padding: 9px 13px;
+        cursor: pointer;
+      }
+      button:hover:not(:disabled) { border-color: var(--cp-accent); }
+      button:focus-visible, a:focus-visible { outline: 2px solid var(--cp-accent); outline-offset: 3px; }
+      .progress-wrap { height: 3px; width: min(1200px, calc(100% - 72px)); margin: 0 auto; background: var(--cp-border); }
+      .progress { height: 100%; width: 0; background: var(--cp-accent); transition: width .25s ease; }
+      main { width: min(1200px, 100%); margin: 0 auto; padding: 20px 36px 36px; display: grid; place-items: center; }
+      .slide { display: none; width: 100%; min-height: min(690px, calc(100vh - 150px)); animation: arrive .28s ease both; }
+      .slide.active { display: flex; flex-direction: column; justify-content: center; }
+      @keyframes arrive { from { opacity: .35; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+      .eyebrow { color: var(--cp-accent); font-size: .72rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+      h1, h2, h3, p { margin-top: 0; }
+      h1, h2, h3 { line-height: 1.12; text-wrap: balance; }
+      h1 { max-width: 930px; margin: 18px 0; font-size: clamp(2.7rem, 7vw, 6rem); letter-spacing: -.055em; }
+      h2 { margin: 13px 0 12px; font-size: clamp(2rem, 4vw, 3.7rem); letter-spacing: -.045em; }
+      h3 { margin-bottom: 9px; font-size: 1.15rem; }
+      .lede { max-width: 760px; color: var(--cp-text-muted); font-size: clamp(1.05rem, 2vw, 1.35rem); }
+      .small { color: var(--cp-text-muted); font-size: .9rem; }
+      .card {
+        border: 1px solid var(--cp-border);
+        border-radius: 16px;
+        background: var(--cp-surface);
+        padding: 22px;
+        box-shadow: 0 0 2px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.14);
+      }
+      .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+      .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+      .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+      .section-head { margin-bottom: 24px; }
+      .label { color: var(--cp-text-soft); font-size: .7rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+      .pill { display: inline-flex; align-items: center; border: 1px solid var(--cp-border); border-radius: 999px; padding: 5px 10px; color: var(--cp-text-muted); font-size: .77rem; }
+      .accent { color: var(--cp-accent); }
+      .accent-card { border-left: 4px solid var(--cp-accent); }
+      .big-stat { margin: 10px 0; font-size: 2rem; font-weight: 700; letter-spacing: -.04em; }
+      .diagram {
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        gap: 12px;
+        margin: 22px 0;
+      }
+      .node {
+        min-width: 120px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 7px;
+        border: 1px solid var(--cp-border);
+        border-radius: .625rem;
+        background: var(--cp-surface);
+        padding: 16px;
+        text-align: center;
+      }
+      .node strong { font-size: .92rem; }
+      .node span { color: var(--cp-text-muted); font-size: .75rem; }
+      .node.hot { border-color: var(--cp-accent); background: var(--cp-accent-soft); }
+      .arrow { align-self: center; color: var(--cp-accent); font-size: 1.5rem; }
+      .stack { display: grid; gap: 9px; width: 100%; }
+      .layer { border: 1px solid var(--cp-border); border-radius: .625rem; background: var(--cp-surface); padding: 11px 15px; }
+      .layer strong { display: block; font-size: .88rem; }
+      .layer span { color: var(--cp-text-muted); font-size: .75rem; }
+      .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+      .column { min-height: 126px; display: grid; align-content: center; gap: 4px; padding: 12px; border: 1px solid var(--cp-border); border-radius: .625rem; background: var(--cp-surface-soft); text-align: center; }
+      .column b { color: var(--cp-accent); font-size: .85rem; }
+      .column span { color: var(--cp-text-muted); font: .74rem/1.5 Consolas, "Courier New", Courier, monospace; }
+      .callout { margin-top: 18px; border: 1px solid var(--cp-border); border-radius: .625rem; background: var(--cp-accent-soft); padding: 14px 17px; }
+      .callout strong { color: var(--cp-accent); }
+      .code { overflow: auto; margin: 12px 0; border-radius: .625rem; background: var(--cp-surface-soft); padding: 15px; color: var(--cp-text); font: .8rem/1.65 Consolas, "Courier New", Courier, monospace; }
+      .timeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin: 24px 0; }
+      .step { position: relative; border-top: 2px solid var(--cp-border-strong); padding: 18px 14px 0 0; }
+      .step::before { position: absolute; top: -7px; left: 0; width: 11px; height: 11px; border-radius: 50%; background: var(--cp-accent); content: ""; }
+      .step strong { display: block; margin-bottom: 7px; }
+      .step span { color: var(--cp-text-muted); font-size: .83rem; }
+      .compare { width: 100%; border-collapse: collapse; overflow: hidden; border-radius: 16px; background: var(--cp-surface); font-size: .86rem; }
+      .compare th, .compare td { border-bottom: 1px solid var(--cp-border); padding: 13px 15px; text-align: left; vertical-align: top; }
+      .compare th { background: var(--cp-surface-soft); font-size: .78rem; }
+      .compare tr:last-child td { border-bottom: 0; }
+      .compare td:first-child { font-weight: 700; }
+      .scenario-buttons { display: flex; flex-wrap: wrap; gap: 9px; margin: 12px 0 18px; }
+      .scenario-buttons button { border: 1px solid var(--cp-border); border-radius: 999px; background: var(--cp-surface); padding: 9px 14px; cursor: pointer; }
+      .scenario-buttons button[aria-pressed="true"] { border-color: var(--cp-accent); background: var(--cp-accent-soft); color: var(--cp-accent); }
+      .scenario-result { min-height: 180px; }
+      .scenario-result p:last-child { margin-bottom: 0; }
+      .notes { display: none; margin-top: 16px; border: 1px dashed var(--cp-border-strong); border-radius: .625rem; padding: 13px 16px; color: var(--cp-text-muted); font-size: .86rem; }
+      .notes.open { display: block; }
+      .controls { color: var(--cp-text-muted); font-size: .85rem; }
+      .nav-button:disabled { cursor: not-allowed; opacity: .42; }
+      .slide-counter { min-width: 65px; text-align: center; font-variant-numeric: tabular-nums; }
+      .source-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 22px; padding: 0; list-style: none; }
+      .source-list li { border-bottom: 1px solid var(--cp-border); padding: 11px 0; font-size: .88rem; }
+      .source-list a { display: inline-block; margin-bottom: 3px; font-weight: 600; }
+      .footer-note { color: var(--cp-text-soft); font-size: .76rem; }
+      @media (max-width: 760px) {
+        .topbar, .controls { padding: 13px 18px; }
+        main { padding: 20px 18px; }
+        .progress-wrap { width: calc(100% - 36px); }
+        .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+        .diagram { flex-direction: column; }
+        .arrow { transform: rotate(90deg); }
+        .timeline { grid-template-columns: 1fr 1fr; gap: 18px; }
+        .source-list { grid-template-columns: 1fr; }
+        .compare { font-size: .73rem; }
+        .compare th, .compare td { padding: 9px 7px; }
+        .hide-small { display: none; }
+        .slide { min-height: calc(100vh - 160px); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+      }
+      @media print {
+        .topbar, .progress-wrap, .controls { display: none; }
+        main { display: block; width: 100%; padding: 0; }
+        .slide, .slide.active { display: flex; min-height: 95vh; page-break-after: always; }
+        .notes { display: block; }
+        body { background: var(--cp-bg); }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="deck">
+      <header>
+        <div class="topbar">
+          <a class="brand" href={withBase()}>
+            <span class="brand-mark">fn</span>
+            <span>Field Notes <span class="hide-small">/ Data engineering primer</span></span>
+          </a>
+          <div class="top-actions">
+            <span id="top-count" aria-live="polite">01 / 13</span>
+            <button class="icon-button" id="notes-toggle" type="button" aria-expanded="false" aria-controls="presenter-notes">Notes</button>
+            <button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button>
+          </div>
+        </div>
+        <div class="progress-wrap" aria-label="Presentation progress"><div class="progress" id="progress"></div></div>
+      </header>
+      <main id="slides" aria-live="polite">
+        <section class="slide active" aria-label="Slide 1 of 13">
+          <p class="eyebrow">A visual field guide · Start here</p>
+          <h1>One question.<br /><span class="accent">Very different engines.</span></h1>
+          <p class="lede">A beginner-friendly tour of VertiPaq, Databricks Metric Views and SQL Warehouses, Snowflake, and Fabric Warehouse—and how to think about concurrency.</p>
+          <div class="grid-3" style="margin-top:32px">
+            <div class="card"><span class="label">The key distinction</span><p class="big-stat">Model ≠ engine</p><p class="small">A metric definition describes meaning. A query engine does the work.</p></div>
+            <div class="card"><span class="label">The useful question</span><p class="big-stat">Who runs SQL?</p><p class="small">Find where data lives, which compute executes the query, and what serves many users.</p></div>
+            <div class="card"><span class="label">The decision</span><p class="big-stat">Fit the workload</p><p class="small">Interactive BI, a data product, an ELT job, and a busy dashboard are different problems.</p></div>
+          </div>
+          <div class="callout"><strong>Learning goal:</strong> By the end, you can explain each layer, compare the platforms fairly, and choose a concurrency strategy without confusing scale-up with scale-out.</div>
+          <aside class="notes" id="presenter-notes-1">Set expectations: the products are not all the same kind of thing. We will separate semantic modeling from storage and execution before comparing them.</aside>
+        </section>
+
+        <section class="slide" aria-label="Slide 2 of 13">
+          <div class="section-head"><p class="eyebrow">01 · Start with a map</p><h2>Analytics has layers.<br /><span class="accent">Name the layer first.</span></h2><p class="lede">Most confusing comparisons put a modeling feature beside a database and call them competitors.</p></div>
+          <div class="diagram">
+            <div class="node"><strong>Data</strong><span>Files, tables, transactions</span></div><div class="arrow">→</div>
+            <div class="node"><strong>Storage format</strong><span>Parquet, Delta, micro-partitions</span></div><div class="arrow">→</div>
+            <div class="node hot"><strong>Query engine</strong><span>Scans, joins, aggregates</span></div><div class="arrow">→</div>
+            <div class="node hot"><strong>Semantic model</strong><span>Measures, names, relationships</span></div><div class="arrow">→</div>
+            <div class="node"><strong>Consumer</strong><span>Dashboard, analyst, app</span></div>
+          </div>
+          <div class="grid-3">
+            <div class="card"><h3>VertiPaq</h3><p class="small">An in-memory, columnar analytics engine used by Power BI Import models and Analysis Services tabular models.</p></div>
+            <div class="card"><h3>Databricks Metric View</h3><p class="small">A governed semantic definition of measures and dimensions. It is not the compute cluster or SQL engine.</p></div>
+            <div class="card"><h3>Warehouse</h3><p class="small">A SQL analytics service: storage is read by provisioned or managed compute that plans and executes queries.</p></div>
+          </div>
+          <div class="callout"><strong>Rule of thumb:</strong> “What does revenue mean?” is semantic. “How do we scan 8 TB?” is execution. “How do 2,000 viewers get answers?” is serving and concurrency.</div>
+          <aside class="notes" id="presenter-notes-2">Many architectures use multiple layers together. A BI model can query a warehouse, and the same underlying warehouse can power many different consumers.</aside>
+        </section>
+
+        <section class="slide" aria-label="Slide 3 of 13">
+          <div class="section-head"><p class="eyebrow">02 · The engine inside an Import model</p><h2>VertiPaq: compress columns,<br /><span class="accent">answer aggregates quickly.</span></h2><p class="lede">VertiPaq is not a cloud MPP warehouse. It is a columnar, in-memory engine optimized for analytical models.</p></div>
+          <div class="grid-2">
+            <div class="card">
+              <span class="label">A toy sales table</span>
+              <div class="columns" style="margin-top:14px">
+                <div class="column"><b>Region</b><span>North · South<br />North · North<br />South · West</span></div>
+                <div class="column"><b>Amount</b><span>12 · 7<br />12 · 4<br />7 · 12</span></div>
+              </div>
+              <p class="small" style="margin:14px 0 0">A row store thinks in records. A column store can read just <code>Amount</code> and the grouping column it needs.</p>
+            </div>
+            <div class="card">
+              <span class="label">What compression does</span>
+              <div class="stack" style="margin-top:14px">
+                <div class="layer"><strong>1 · Dictionary</strong><span>Map repeated values such as North/South to compact IDs.</span></div>
+                <div class="layer"><strong>2 · Encoding</strong><span>Store the IDs compactly; encode numeric columns efficiently.</span></div>
+                <div class="layer"><strong>3 · Segments</strong><span>Organize column data into compressed chunks for scanning and filtering.</span></div>
+                <div class="layer"><strong>4 · Formula engine</strong><span>Evaluate DAX measures and relationships over the model.</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="callout"><strong>Trade-off:</strong> Repeated values and a good model shape often compress well; high-cardinality columns can consume much more memory. Import refresh and model memory limits still matter.</div>
+          <aside class="notes" id="presenter-notes-3">Simplify: VertiPaq is like keeping a compact, column-oriented analytical copy in memory. It avoids reading irrelevant columns for many BI queries. Compression depends on data and does not guarantee every model is tiny.</aside>
+        </section>
+
+        <section class="slide" aria-label="Slide 4 of 13">
+          <div class="section-head"><p class="eyebrow">03 · How a BI question is answered</p><h2>With Import, the model<br /><span class="accent">sits between the report and data.</span></h2><p class="lede">The storage mode changes where query work happens—and therefore changes the latency, freshness, and capacity story.</p></div>
+          <div class="diagram">
+            <div class="node"><strong>Source</strong><span>Lakehouse / warehouse / DB</span></div><div class="arrow">→</div>
+            <div class="node"><strong>Refresh</strong><span>Load and transform data</span></div><div class="arrow">→</div>
+            <div class="node hot"><strong>VertiPaq model</strong><span>Compressed in-memory columns</span></div><div class="arrow">→</div>
+            <div class="node"><strong>Report query</strong><span>DAX measures and filters</span></div>
+          </div>
+          <div class="grid-3">
+            <div class="card"><h3>Import</h3><p class="small"><b>Copy into the model.</b> Often fast and feature-rich for interactive BI. Freshness follows refresh cadence; model size and refresh are real design concerns.</p></div>
+            <div class="card"><h3>DirectQuery</h3><p class="small"><b>Query the source.</b> Source performance, network, and concurrent query capacity matter. The semantic model does not mean all data is imported.</p></div>
+            <div class="card"><h3>Composite</h3><p class="small"><b>Mix modes.</b> Some tables may be imported and others queried live. Understand which query goes where before troubleshooting speed.</p></div>
+          </div>
+          <div class="callout"><strong>Important:</strong> A Power BI semantic model can be backed by VertiPaq, a live connection, DirectQuery, or a mix. “Power BI uses VertiPaq” is not true for every model and query.</div>
+          <aside class="notes" id="presenter-notes-4">A refresh is an ingestion/loading operation into the model, not the same thing as a user query. For DirectQuery, interactive concurrency can become a source workload. Always identify storage mode.</aside>
+        </section>
+
+        <section class="slide" aria-label="Slide 5 of 13">
+          <div class="section-head"><p class="eyebrow">04 · Databricks Metric Views</p><h2>Metric Views define meaning.<br /><span class="accent">They do not replace compute.</span></h2><p class="lede">A reusable semantic layer helps teams agree on “revenue” or “active customers” without hard-coding every definition into every dashboard.</p></div>
+          <div class="grid-2">
+            <div class="card">
+              <span class="label">Definition layer · Unity Catalog</span>
+              <div class="stack" style="margin-top:14px">
+                <div class="layer"><strong>Source</strong><span>Governed tables / views and relationships</span></div>
+                <div class="layer"><strong>Dimensions</strong><span>Time, region, product, customer segment</span></div>
+                <div class="layer"><strong>Measures</strong><span>Revenue = SUM(net_amount), orders = COUNT(...)</span></div>
+              </div>
+              <pre class="code">MEASURE(total_revenue)
+GROUP BY region, month</pre>
+              <p class="small">A Metric View is a governed semantic definition (YAML-backed), queried by consumers through supported interfaces.</p>
+            </div>
+            <div class="card">
+              <span class="label">Execution layer · Databricks SQL</span>
+              <div class="diagram" style="flex-direction:column">
+                <div class="node"><strong>Dashboard / BI / SQL</strong><span>Request metric + grouping</span></div><div class="arrow">↓</div>
+                <div class="node hot"><strong>SQL Warehouse</strong><span>Plans and runs distributed SQL</span></div><div class="arrow">↓</div>
+                <div class="node"><strong>Delta tables</strong><span>Governed data in cloud storage</span></div>
+              </div>
+              <p class="small">The SQL Warehouse supplies compute. The metric definition describes what query to run. The data still has to be read, joined, and aggregated.</p>
+            </div>
+          </div>
+          <div class="callout"><strong>Do not compare Metric Views directly to VertiPaq:</strong> one is a semantic definition; the other is a compressed in-memory execution/storage engine. A Metric View still depends on a serving engine and its workload capacity.</div>
+          <aside class="notes" id="presenter-notes-5">Metric View features and support evolve; verify current Databricks documentation for your cloud and workspace. Do not promise that a metric definition alone materializes or accelerates data—materialization and caching are separate capabilities/configuration.</aside>
+        </section>
+
+        <section class="slide" aria-label="Slide 6 of 13">
+          <div class="section-head"><p class="eyebrow">05 · MPP explained without the jargon</p><h2>MPP means split the work,<br /><span class="accent">then bring results together.</span></h2><p class="lede">Massively parallel processing divides a large query into tasks that can run on multiple workers at once.</p></div>
+          <div class="timeline">
+            <div class="step"><strong>1 · Plan</strong><span>Parse SQL, choose scans, joins, filters, and aggregation strategy.</span></div>
+            <div class="step"><strong>2 · Divide</strong><span>Split the work by files, partitions, or data distribution.</span></div>
+            <div class="step"><strong>3 · Execute</strong><span>Workers scan and compute in parallel; shuffle may move rows between workers.</span></div>
+            <div class="step"><strong>4 · Return</strong><span>Combine partial results and send rows to the caller.</span></div>
+          </div>
+          <div class="diagram">
+            <div class="node"><strong>SQL query</strong><span>GROUP BY region</span></div><div class="arrow">→</div>
+            <div class="node hot"><strong>Coordinator</strong><span>Build plan, schedule tasks</span></div><div class="arrow">→</div>
+            <div class="stack">
+              <div class="node">Worker A · files 1–3</div><div class="node">Worker B · files 4–6</div><div class="node">Worker C · files 7–9</div>
+            </div><div class="arrow">→</div><div class="node"><strong>Merge</strong><span>Partial sums → final answer</span></div>
+          </div>
+          <div class="grid-3">
+            <div class="card"><h3>Scale up</h3><p class="small">Give the query more/larger compute. Useful when one query needs more CPU, memory, or I/O bandwidth.</p></div>
+            <div class="card"><h3>Scale out</h3><p class="small">Add workers or clusters. Useful when work can parallelize or more independent queries need service.</p></div>
+            <div class="card"><h3>Partition wisely</h3><p class="small">Parallelism helps only if data and work distribute well. Skew, shuffle, tiny files, or a hot key can bottleneck.</p></div>
+          </div>
+          <aside class="notes" id="presenter-notes-6">MPP is a design approach, not one standardized product feature or guaranteed query speed. Network shuffle and coordination have costs; adding workers is not a magic fix for a poor plan.</aside>
+        </section>
+
+        <section class="slide" aria-label="Slide 7 of 13">
+          <div class="section-head"><p class="eyebrow">06 · Snowflake</p><h2>Shared data.<br /><span class="accent">Independent virtual warehouses.</span></h2><p class="lede">Snowflake separates persistent storage from the virtual warehouses that execute SQL, so teams can isolate compute for different workloads.</p></div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="stack">
+                <div class="layer"><strong>Cloud services</strong><span>Authentication, metadata, optimization, coordination</span></div>
+                <div class="layer"><strong>Virtual warehouse · BI</strong><span>Compute cluster executing BI queries</span></div>
+                <div class="layer"><strong>Virtual warehouse · ELT</strong><span>Separate compute for ingestion/transformation</span></div>
+                <div class="layer"><strong>Shared storage</strong><span>Compressed, columnar micro-partitions</span></div>
+              </div>
+            </div>
+            <div class="card">
+              <h3>What “independent” buys you</h3>
+              <p class="small">A heavy transformation on one virtual warehouse need not consume the same warehouse compute as dashboards on another. Compute can be resized, suspended, resumed, and governed separately.</p>
+              <h3 style="margin-top:20px">Multi-cluster for busy periods</h3>
+              <p class="small">A multi-cluster warehouse can add clusters to handle concurrency. This is different from making one query bigger: the goal is often to serve more simultaneous queries with less queuing.</p>
+              <div class="callout"><strong>Watch the bill:</strong> More running compute clusters and larger sizes consume more credits. Autosuspend, workload isolation, and appropriate min/max cluster settings matter.</div>
+            </div>
+          </div>
+          <div class="diagram">
+            <div class="node hot"><strong>BI cluster</strong><span>Many dashboard requests</span></div><div class="node hot"><strong>ELT cluster</strong><span>Batch transformations</span></div><div class="node"><strong>Ad hoc cluster</strong><span>Analyst exploration</span></div>
+            <div class="arrow">↘</div><div class="node"><strong>Same governed data</strong><span>Compute clusters access shared storage</span></div>
+          </div>
+          <aside class="notes" id="presenter-notes-7">Snowflake is not literally “one shared disk” in the traditional database sense; its service layers coordinate access to cloud storage. Multi-cluster is mainly concurrency scaling, not necessarily faster execution for one query.</aside>
+        </section>
+
+        <section class="slide" aria-label="Slide 8 of 13">
+          <div class="section-head"><p class="eyebrow">07 · Microsoft Fabric Warehouse</p><h2>SQL warehouse,<br /><span class="accent">inside a shared data platform.</span></h2><p class="lede">Fabric Warehouse combines a SQL analytics experience with OneLake and Delta-format interoperability across Fabric workloads.</p></div>
+          <div class="grid-2">
+            <div class="card">
+              <span class="label">Simplified architecture</span>
+              <div class="stack" style="margin-top:14px">
+                <div class="layer"><strong>SQL analytics</strong><span>T-SQL endpoint, query optimization, distributed execution</span></div>
+                <div class="layer"><strong>Fabric capacity</strong><span>Shared capacity budget across assigned Fabric workloads</span></div>
+                <div class="layer"><strong>OneLake storage</strong><span>Open Delta tables; shared data avoids unnecessary copies</span></div>
+                <div class="layer"><strong>Consumers</strong><span>Power BI, notebooks, pipelines, SQL clients</span></div>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Why teams choose it</h3>
+              <p class="small">T-SQL familiarity, managed warehouse experience, OneLake integration, and close Power BI/Fabric workflows. Shared data can reduce duplicated copies between lake and warehouse patterns.</p>
+              <h3 style="margin-top:20px">What capacity changes</h3>
+              <p class="small">Fabric uses distributed query processing: a frontend plans SQL and a DQP engine schedules work across backend nodes. Backend compute can scale autonomously with demand, but this is not a promise of subsecond startup for distributed queries.</p>
+              <p class="small">Workload management separates SELECT and non-SELECT work into resource pools by default, helping isolate reads from ingestion. Capacity SKU guardrails, concurrent tasks, and service behavior still affect latency.</p>
+              <div class="callout"><strong>Plan for:</strong> capacity sizing and monitoring, workload scheduling/isolation, SQL tuning, and the exact behavior of your SKU and current Fabric features.</div>
+            </div>
+          </div>
+          <div class="grid-3">
+            <div class="card"><h3>Not just a Lakehouse</h3><p class="small">Warehouse provides a SQL-first warehouse authoring and serving experience.</p></div>
+            <div class="card"><h3>Not just Power BI</h3><p class="small">Warehouse SQL execution is distinct from a VertiPaq semantic model, even when Power BI sits on top.</p></div>
+            <div class="card"><h3>Not a free performance switch</h3><p class="small">OneLake interoperability does not remove modeling, capacity, concurrency, or query tuning choices.</p></div>
+          </div>
+          <aside class="notes" id="presenter-notes-8">Fabric's current workload-management docs describe task scheduling, autonomous backend scale, default read/write pool isolation, and limits/guardrails. Check the linked docs for the current details and SKU guardrails. This deck avoids hard-coded concurrency limits.</aside>
+        </section>
+
+        <section class="slide" aria-label="Slide 9 of 13">
+          <div class="section-head"><p class="eyebrow">08 · Databricks SQL Warehouse</p><h2>SQL compute over lakehouse data,<br /><span class="accent">with a semantic layer available.</span></h2><p class="lede">A Databricks SQL Warehouse is a compute resource for SQL workloads. Metric Views can define business metrics queried by that compute.</p></div>
+          <div class="grid-2">
+            <div class="card">
+              <span class="label">The request path</span>
+              <div class="stack" style="margin-top:14px">
+                <div class="layer"><strong>BI dashboard / SQL client</strong><span>Submits SQL, possibly using a Metric View</span></div>
+                <div class="layer"><strong>SQL Warehouse</strong><span>Serverless, Pro, or Classic options (availability varies)</span></div>
+                <div class="layer"><strong>Distributed execution</strong><span>Plans and executes query tasks across compute</span></div>
+                <div class="layer"><strong>Unity Catalog + Delta</strong><span>Governance, metadata, permissions, lakehouse tables</span></div>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Concurrency knobs</h3>
+              <p class="small"><b>Warehouse size:</b> More compute can help resource-heavy queries. <b>Cluster scaling:</b> Additional clusters can serve concurrent demand. <b>Serverless:</b> Managed startup/scaling experience where available and enabled.</p>
+              <h3 style="margin-top:18px">What it is not</h3>
+              <p class="small">A Metric View is not a warehouse. A SQL Warehouse is not the Metric View. The lakehouse table is not the serving compute. Keep those responsibilities separate when diagnosing latency.</p>
+              <div class="callout"><strong>Measure the actual bottleneck:</strong> startup, queue time, scan volume, shuffle, skew, concurrency, source layout, and caching are different causes with different fixes.</div>
+            </div>
+          </div>
+          <div class="diagram">
+            <div class="node"><strong>Metric View</strong><span>Reusable definition</span></div><div class="arrow">+</div><div class="node"><strong>SQL Warehouse</strong><span>Query compute</span></div><div class="arrow">+</div><div class="node"><strong>Delta data</strong><span>Stored tables</span></div><div class="arrow">=</div><div class="node hot"><strong>Analytics result</strong><span>Metric to the consumer</span></div>
+          </div>
+          <aside class="notes" id="presenter-notes-9">Specific warehouse types, cluster controls, feature support, and defaults differ by cloud and evolve. Validate the documentation for your environment before choosing settings.</aside>
+        </section>
+
+        <section class="slide" aria-label="Slide 10 of 13">
+          <div class="section-head"><p class="eyebrow">09 · Side-by-side comparison</p><h2>Compare like with like.<br /><span class="accent">Then compare the whole stack.</span></h2></div>
+          <table class="compare">
+            <thead><tr><th>Technology</th><th>What it is</th><th>Where data / compute sit</th><th>Good fit when...</th><th class="hide-small">Watch out for</th></tr></thead>
+            <tbody>
+              <tr><td>VertiPaq</td><td>Columnar in-memory model engine</td><td>Compressed model data in BI/Analysis Services memory</td><td>Interactive BI on curated, refreshed models</td><td class="hide-small">Memory/model size, refresh, cardinality</td></tr>
+              <tr><td>Databricks Metric View</td><td>Governed semantic metric definition</td><td>Definition in Unity Catalog; compute is separate</td><td>Reusable metric logic across SQL/BI consumers</td><td class="hide-small">Does not supply compute or guarantee acceleration</td></tr>
+              <tr><td>Snowflake</td><td>Cloud data platform and SQL warehouse service</td><td>Shared cloud storage; independent virtual warehouses</td><td>Separate SQL workloads and flex compute</td><td class="hide-small">Cluster/size costs, queueing, governance</td></tr>
+              <tr><td>Fabric Warehouse</td><td>Managed SQL warehouse in Fabric</td><td>OneLake/Delta + SQL execution on Fabric capacity</td><td>T-SQL and integrated Fabric/Power BI workflows</td><td class="hide-small">Shared capacity contention and tuning</td></tr>
+              <tr><td>Databricks SQL Warehouse</td><td>Managed SQL compute for lakehouse data</td><td>SQL compute separated from governed Delta data</td><td>SQL/BI on Databricks with lakehouse governance</td><td class="hide-small">Startup, scaling, query layout and cost</td></tr>
+            </tbody>
+          </table>
+          <div class="callout"><strong>Fair comparison:</strong> Compare BI serving to BI serving, SQL execution to SQL execution, and semantic definitions to semantic definitions. End-to-end performance includes source layout, query, compute, network, cache, and consumer behavior.</div>
+          <aside class="notes" id="presenter-notes-10">Features are not perfectly symmetrical. The table deliberately compares platform roles, not benchmarks. An apples-to-apples benchmark needs the same data, query, freshness, concurrency, and cost envelope.</aside>
+        </section>
+
+        <section class="slide" aria-label="Slide 11 of 13">
+          <div class="section-head"><p class="eyebrow">10 · Concurrency, in plain language</p><h2>High concurrency means<br /><span class="accent">many requests at once.</span></h2><p class="lede">It is not the same as a single query over a very large dataset. Ask whether users are waiting in a queue or one query is intrinsically slow.</p></div>
+          <div class="grid-2">
+            <div class="card">
+              <span class="label">Scale-up: help a heavy query</span>
+              <div class="diagram">
+                <div class="node"><strong>1 large query</strong><span>Needs CPU / memory / I/O</span></div><div class="arrow">→</div><div class="node hot"><strong>Bigger compute</strong><span>More resources per execution</span></div>
+              </div>
+              <p class="small">Good when elapsed time is dominated by a resource-bound scan, join, or aggregation and the plan can use the added resources.</p>
+            </div>
+            <div class="card">
+              <span class="label">Scale-out: serve more at once</span>
+              <div class="diagram">
+                <div class="node"><strong>Many queries</strong><span>Users / dashboards arrive together</span></div><div class="arrow">→</div><div class="node hot"><strong>More clusters / capacity</strong><span>More parallel service slots</span></div>
+              </div>
+              <p class="small">Good when concurrent demand creates queuing and the platform supports adding compute for that workload. It can cost more.</p>
+            </div>
+          </div>
+          <div class="grid-3" style="margin-top:16px">
+            <div class="card"><h3>First: inspect queue time</h3><p class="small">A slow query with little queue time points to query/data/compute work. Large queue time suggests contention, admission control, or insufficient serving capacity.</p></div>
+            <div class="card"><h3>Then: isolate workloads</h3><p class="small">Separate BI from ELT or ad hoc work where the platform supports it. A predictable dashboard should not compete blindly with an overnight rebuild.</p></div>
+            <div class="card"><h3>Finally: right-size</h3><p class="small">Tune model, SQL, file layout, caching, schedules, autosuspend, and scaling together. More concurrency can increase cost and still leave a bad query slow.</p></div>
+          </div>
+          <aside class="notes" id="presenter-notes-11">For VertiPaq, think model-serving capacity and BI capacity/refresh concurrency, not adding MPP warehouse clusters. DirectQuery sends work to its source, so source concurrency becomes important.</aside>
+        </section>
+
+        <section class="slide" aria-label="Slide 12 of 13">
+          <div class="section-head"><p class="eyebrow">11 · Choose by workload</p><h2>What would you pick?<br /><span class="accent">Try a few realistic starting points.</span></h2><p class="lede">Choose the closest scenario. Treat the answer as a shortlist—not a product ranking.</p></div>
+          <div class="scenario-buttons" role="group" aria-label="Choose a workload scenario">
+            <button type="button" data-scenario="bi" aria-pressed="true">Fast interactive BI</button>
+            <button type="button" data-scenario="shared" aria-pressed="false">Many teams, shared SQL data</button>
+            <button type="button" data-scenario="lake" aria-pressed="false">Lakehouse-first analytics</button>
+            <button type="button" data-scenario="peak" aria-pressed="false">Spiky dashboard peak</button>
+          </div>
+          <div class="card scenario-result" id="scenario-result" aria-live="polite">
+            <p class="label">Starting point · Fast interactive BI</p>
+            <h3>Consider an Import semantic model when it fits.</h3>
+            <p class="small">Curate and refresh the model, define measures centrally, and test model size and refresh time. If data freshness or size rules Import out, evaluate DirectQuery/composite and capacity carefully. Do not select Metric Views as a substitute for BI serving compute.</p>
+            <p class="small"><b>Measure:</b> visual latency, refresh duration, model memory, and concurrent viewers.</p>
+          </div>
+          <div class="callout"><strong>Always validate:</strong> data volume and growth, freshness target, SQL/BI skills, governance, cloud and region availability, capacity budget, and real concurrent query patterns.</div>
+          <aside class="notes" id="presenter-notes-12">Invite learners to justify a choice using requirements. Multiple platforms can satisfy the same need; the right choice is constrained by existing governance, skills, workload, and economics.</aside>
+        </section>
+
+        <section class="slide" aria-label="Slide 13 of 13">
+          <div class="section-head"><p class="eyebrow">12 · The takeaway</p><h2>Remember these five things.<br /><span class="accent">Then go test your workload.</span></h2></div>
+          <div class="grid-2">
+            <div class="card"><p><b>1.</b> VertiPaq is a compressed, columnar in-memory analytics engine—not a general-purpose cloud MPP warehouse.</p></div>
+            <div class="card"><p><b>2.</b> A Databricks Metric View centralizes metric meaning; Databricks SQL Warehouse supplies query compute.</p></div>
+            <div class="card"><p><b>3.</b> Snowflake warehouses, Fabric Warehouse, and Databricks SQL Warehouses are SQL analytics services with different storage, governance, and scaling models.</p></div>
+            <div class="card"><p><b>4.</b> MPP divides query work across workers; more workers help only when the query and data can use them.</p></div>
+            <div class="card"><p><b>5.</b> Scale up for a slow resource-bound query. Scale out/isolate for concurrent demand and queueing—then watch cost.</p></div>
+            <div class="card accent-card"><p><b>First diagnostic question:</b> Is the time in the queue, the query, data movement, or the consumer?</p></div>
+          </div>
+          <h3 style="margin-top:24px">Official reading</h3>
+          <ul class="source-list">
+            <li><a href="https://learn.microsoft.com/power-bi/transform-model/desktop-storage-mode">Power BI semantic model storage modes</a><br /><span class="small">Import, DirectQuery, and composite model behavior.</span></li>
+            <li><a href="https://learn.microsoft.com/fabric/data-warehouse/architecture">Fabric Data Warehouse architecture</a><br /><span class="small">OneLake, Delta, and Warehouse architecture overview.</span></li>
+            <li><a href="https://learn.microsoft.com/fabric/data-warehouse/workload-management">Fabric Warehouse workload management</a><br /><span class="small">Scheduling and resource behavior for SQL workloads.</span></li>
+            <li><a href="https://docs.databricks.com/aws/en/uc-semantics/metric-views/">Databricks Unity Catalog Metric Views</a><br /><span class="small">Metric semantic layer, modeling, and usage.</span></li>
+            <li><a href="https://docs.databricks.com/aws/en/compute/sql-warehouse/">Databricks SQL Warehouses</a><br /><span class="small">SQL compute options and configuration.</span></li>
+            <li><a href="https://docs.snowflake.com/en/user-guide/intro-key-concepts">Snowflake architecture and key concepts</a><br /><span class="small">Storage, compute, and cloud services.</span></li>
+            <li><a href="https://docs.snowflake.com/en/user-guide/warehouses-multicluster">Snowflake multi-cluster warehouses</a><br /><span class="small">Concurrency-focused scaling concepts.</span></li>
+          </ul>
+          <p class="footer-note">Product capabilities change. Confirm the current documentation for your region, SKU, service tier, and enabled features.</p>
+          <aside class="notes" id="presenter-notes-13">Close by reminding the learner that architecture comparisons are a starting map, not a benchmark. In real projects, write down freshness, concurrency, query profile, cost, and operational constraints before choosing.</aside>
+        </section>
+      </main>
+      <footer class="controls">
+        <div class="control-group"><span class="footer-note">Navigate with ← → · Home / End · Space</span></div>
+        <div class="control-group">
+          <button class="nav-button" id="previous" type="button" aria-label="Previous slide">← <span class="hide-small">Previous</span></button>
+          <span class="slide-counter" id="slide-counter" aria-live="polite">01 / 13</span>
+          <button class="nav-button" id="next" type="button" aria-label="Next slide"><span class="hide-small">Next</span> →</button>
+        </div>
+      </footer>
+    </div>
+    <script>
+      (() => {
+        function requiredElement<T extends HTMLElement>(selector: string): T {
+          const element = document.querySelector<T>(selector);
+          if (!element) throw new Error(`Missing presentation element: ${selector}`);
+          return element;
+        }
+        const slides = [...document.querySelectorAll<HTMLElement>(".slide")];
+        if (!slides.length) throw new Error("Presentation has no slides.");
+        const progress = requiredElement<HTMLDivElement>("#progress");
+        const counter = requiredElement<HTMLSpanElement>("#slide-counter");
+        const topCount = requiredElement<HTMLSpanElement>("#top-count");
+        const previous = requiredElement<HTMLButtonElement>("#previous");
+        const next = requiredElement<HTMLButtonElement>("#next");
+        const notesToggle = requiredElement<HTMLButtonElement>("#notes-toggle");
+        const themeToggle = requiredElement<HTMLButtonElement>("#theme-toggle");
+        const scenarioResult = requiredElement<HTMLDivElement>("#scenario-result");
+        let current = 0;
+        const pad = (n: number) => String(n).padStart(2, "0");
+        function show(index: number) {
+          current = Math.max(0, Math.min(slides.length - 1, index));
+          slides.forEach((slide, i) => {
+            slide.classList.toggle("active", i === current);
+            slide.setAttribute("aria-hidden", String(i !== current));
+          });
+          const label = `${pad(current + 1)} / ${pad(slides.length)}`;
+          counter.textContent = label;
+          topCount.textContent = label;
+          progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+          previous.disabled = current === 0;
+          next.disabled = current === slides.length - 1;
+          notesToggle.setAttribute("aria-expanded", "false");
+          notesToggle.setAttribute("aria-controls", `presenter-notes-${current + 1}`);
+          slides[current].querySelector(".notes")?.classList.remove("open");
+        }
+        previous.addEventListener("click", () => show(current - 1));
+        next.addEventListener("click", () => show(current + 1));
+        document.addEventListener("keydown", (event) => {
+          if (event.altKey || event.ctrlKey || event.metaKey) return;
+          if (["ArrowRight", " ", "PageDown"].includes(event.key)) { event.preventDefault(); show(current + 1); }
+          if (["ArrowLeft", "PageUp"].includes(event.key)) { event.preventDefault(); show(current - 1); }
+          if (event.key === "Home") show(0);
+          if (event.key === "End") show(slides.length - 1);
+        });
+        notesToggle.addEventListener("click", () => {
+          const notes = slides[current].querySelector(".notes");
+          if (!notes) return;
+          const open = notes.classList.toggle("open");
+          notesToggle.setAttribute("aria-expanded", String(open));
+          if (open) notes.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        });
+        themeToggle.addEventListener("click", () => {
+          const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+          document.documentElement.dataset.theme = nextTheme;
+        });
+        const scenarios: Record<string, { title: string; heading: string; body: string; measure: string }> = {
+          bi: {
+            title: "Fast interactive BI",
+            heading: "Consider an Import semantic model when it fits.",
+            body: "Curate and refresh the model, define measures centrally, and test model size and refresh time. If data freshness or size rules Import out, evaluate DirectQuery/composite and capacity carefully. Do not select Metric Views as a substitute for BI serving compute.",
+            measure: "visual latency, refresh duration, model memory, and concurrent viewers."
+          },
+          shared: {
+            title: "Many teams, shared SQL data",
+            heading: "Compare Snowflake and Fabric Warehouse against your platform context.",
+            body: "Both offer managed SQL analytics but differ in storage, governance, capacity model, and ecosystem fit. Snowflake supports independent virtual warehouses on shared storage; Fabric integrates Warehouse with OneLake and shared Fabric capacity. Use workload isolation and permissions intentionally.",
+            measure: "queue time by workload, freshness, isolation needs, capacity/credits, and operational effort."
+          },
+          lake: {
+            title: "Lakehouse-first analytics",
+            heading: "Evaluate Databricks SQL Warehouse; add Metric Views for shared definitions.",
+            body: "If governed Delta data and Databricks are already central, SQL Warehouse can serve SQL/BI workloads and Metric Views can standardize metrics. Keep the semantic definition distinct from SQL compute; assess startup, scaling, query performance, and BI connectivity.",
+            measure: "query profile, warehouse startup, concurrent sessions, data layout, and cost."
+          },
+          peak: {
+            title: "Spiky dashboard peak",
+            heading: "Find the queue before changing the size.",
+            body: "If queries are waiting, test concurrency controls and scale-out where supported; if a query runs slowly after it starts, tune its plan or scale up if the extra resources help. Separate dashboard workloads from batch ETL, and verify BI model or DirectQuery behavior.",
+            measure: "p95 latency split into queue + execution, peak concurrency, cache hit rate, and cost."
+          }
+        };
+        document.querySelectorAll<HTMLButtonElement>("[data-scenario]").forEach((button) => {
+          button.addEventListener("click", () => {
+            document.querySelectorAll("[data-scenario]").forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+            const key = button.dataset.scenario;
+            const scenario = key ? scenarios[key] : undefined;
+            if (!scenario) throw new Error("Unknown workload scenario.");
+            scenarioResult.innerHTML =
+              `<p class="label">Starting point · ${scenario.title}</p><h3>${scenario.heading}</h3><p class="small">${scenario.body}</p><p class="small"><b>Measure:</b> ${scenario.measure}</p>`;
+          });
+        });
+        show(0);
+      })();
+    </script>
+  </body>
+</html>
