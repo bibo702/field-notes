@@ -4,6 +4,7 @@ import Base from '../../layouts/Base.astro';
 import { publishedPosts, formatDate, readingTime } from '../../lib/posts';
 import { tagUrl, withBase } from '../../lib/urls';
 import { site } from '../../config';
+import WarehouseFieldGuide from '../../components/WarehouseFieldGuide.astro';
 export async function getStaticPaths() {
   return (await publishedPosts()).map((post) => ({ params: { id: post.id }, props: { post } }));
 }
@@ -21,6 +22,7 @@ const toc = headings.filter((heading) => heading.depth === 2);
       <ul class="tag-list" aria-label="Tags">{post.data.tags.map((tag) => <li><a href={tagUrl(tag)}>{tag}</a></li>)}</ul>
     </header>
     {post.data.starter && <aside class="article-notice"><strong>Instructional starter</strong><p>This is an example for your new notebook, not a personal account. Adapt it, replace it, or remove it before publishing.</p></aside>}
+    {post.id === 'data-warehouse-conversation-guide' && <WarehouseFieldGuide />}
     <div class="article-grid">
       <div class="prose article-content"><Content /></div>
       {toc.length > 0 && <aside class="table-of-contents"><nav aria-label="On this page"><p class="eyebrow">On this page</p><ol>{toc.map((heading) => <li><a href={`#${heading.slug}`}>{heading.text}</a></li>)}</ol></nav></aside>}

@@ -82,6 +82,30 @@ test('data platforms presentation navigates, reveals notes, and updates its work
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
+test('warehouse conversation guide renders and its architecture, diagnosis, and quiz work', async ({ page }) => {
+  await page.goto('posts/data-warehouse-conversation-guide/');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('The Data Warehouse Conversation Guide');
+  await expect(page.getByRole('heading', { name: 'A warehouse is a system, not a box' })).toBeVisible();
+  await expect(page.locator('.article-content')).toContainText('Start with the grain');
+
+  await page.getByRole('button', { name: /Ingest/ }).click();
+  await expect(page.locator('#layer-title')).toContainText('How do changes arrive safely');
+  await expect(page.locator('[data-layer="ingest"]')).toHaveAttribute('aria-pressed', 'true');
+
+  await page.getByRole('button', { name: 'Users are waiting' }).click();
+  await expect(page.locator('#diagnosis-title')).toContainText('queueing and competing workloads');
+  await expect(page.locator('#diagnosis-investigate')).toContainText('capacity pressure');
+
+  await page.getByRole('button', { name: 'Which file format to use' }).click();
+  await expect(page.locator('#quiz-feedback')).toContainText('Define the grain first');
+  await page.getByRole('button', { name: 'What one row represents' }).click();
+  await expect(page.locator('#quiz-feedback')).toContainText('Grain is the business definition of one row');
+
+  await expect(page.getByRole('link', { name: 'Fabric Warehouse Book — Mark Pryce-Maher' })).toHaveAttribute('href', 'https://github.com/MarkPryceMaherMSFT/Fabric-Warehouse-Book/tree/main/parts');
+  await page.setViewportSize({ width: 375, height: 812 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
 test('mobile layout has no horizontal page overflow', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   for (const route of ['./', 'about/', 'tags/', 'posts/writing-a-useful-learning-note/', 'posts/fabric-warehouse-identity-permissions/', '404.html']) {

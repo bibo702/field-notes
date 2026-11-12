@@ -1,0 +1,313 @@
+<section class="warehouse-lab" aria-labelledby="warehouse-lab-title">
+  <div class="lab-heading">
+    <p class="eyebrow">Explore before you read</p>
+    <h2 id="warehouse-lab-title">A warehouse is a system, not a box</h2>
+    <p>Pick a layer to see what it owns, which questions to ask, and where common misunderstandings start.</p>
+  </div>
+
+  <div class="architecture" role="group" aria-label="Interactive data warehouse architecture">
+    <button class="architecture-node is-active" type="button" data-layer="sources" aria-pressed="true">
+      <span class="node-number">01</span><strong>Sources</strong><small>Business events</small>
+    </button>
+    <span class="architecture-arrow" aria-hidden="true">→</span>
+    <button class="architecture-node" type="button" data-layer="ingest" aria-pressed="false">
+      <span class="node-number">02</span><strong>Ingest</strong><small>Move changes</small>
+    </button>
+    <span class="architecture-arrow" aria-hidden="true">→</span>
+    <button class="architecture-node" type="button" data-layer="store" aria-pressed="false">
+      <span class="node-number">03</span><strong>Store &amp; model</strong><small>Trustworthy shape</small>
+    </button>
+    <span class="architecture-arrow" aria-hidden="true">→</span>
+    <button class="architecture-node" type="button" data-layer="compute" aria-pressed="false">
+      <span class="node-number">04</span><strong>Compute</strong><small>Run the query</small>
+    </button>
+    <span class="architecture-arrow" aria-hidden="true">→</span>
+    <button class="architecture-node" type="button" data-layer="serve" aria-pressed="false">
+      <span class="node-number">05</span><strong>Serve</strong><small>Answer a question</small>
+    </button>
+  </div>
+
+  <div class="layer-detail" id="layer-detail" aria-live="polite">
+    <div>
+      <p class="detail-label" id="layer-label">LAYER 01 · SOURCES</p>
+      <h3 id="layer-title">Where does the business record the event?</h3>
+    </div>
+    <div class="detail-copy">
+      <p id="layer-description">Operational applications, files, APIs, and event streams are designed to capture business activity—not necessarily to answer historical questions cheaply.</p>
+      <p><strong>Ask:</strong> <span id="layer-question">What is the source of truth, how late can data arrive, and how do updates or deletes appear?</span></p>
+      <p class="detail-watch"><strong>Watch for:</strong> <span id="layer-watch">A source table is not automatically a durable analytical history.</span></p>
+    </div>
+  </div>
+
+  <div class="lab-heading diagnosis-heading">
+    <p class="eyebrow">Interactive diagnostic</p>
+    <h2>Start with the symptom</h2>
+    <p>The same complaint—“the warehouse is slow”—can have very different causes. Choose what you actually observe.</p>
+  </div>
+  <div class="symptom-picker" role="group" aria-label="Choose a warehouse problem">
+    <button type="button" data-diagnosis="slow-query" aria-pressed="true">One query is slow</button>
+    <button type="button" data-diagnosis="queue">Users are waiting</button>
+    <button type="button" data-diagnosis="wrong-total">Totals look wrong</button>
+    <button type="button" data-diagnosis="stale-data">Data is stale</button>
+  </div>
+  <div class="diagnosis-result" aria-live="polite">
+    <p class="detail-label" id="diagnosis-label">SYMPTOM · ONE QUERY IS SLOW</p>
+    <h3 id="diagnosis-title">Separate execution time from queue time.</h3>
+    <p><strong>Measure first:</strong> <span id="diagnosis-measure">Elapsed time, rows scanned, query plan, and whether the same query was fast on a smaller or warmer dataset.</span></p>
+    <p><strong>Investigate:</strong> <span id="diagnosis-investigate">Check predicates, join cardinality, statistics, file layout, skew, and data movement. In Fabric, use Query Insights and the query plan to narrow the evidence.</span></p>
+    <p class="detail-watch"><strong>Do not assume:</strong> <span id="diagnosis-assumption">Adding capacity fixes a poor plan, a many-to-many join, or an avoidable full scan.</span></p>
+  </div>
+
+  <div class="lab-heading quiz-heading">
+    <p class="eyebrow">Quick check</p>
+    <h2>What should be defined first?</h2>
+    <p>You are about to build a sales fact table. Pick the best first design decision.</p>
+  </div>
+  <div class="quiz" role="group" aria-label="Choose the first data model design decision">
+    <button type="button" data-quiz="format">Which file format to use</button>
+    <button type="button" data-quiz="grain">What one row represents</button>
+    <button type="button" data-quiz="capacity">Which capacity to buy</button>
+  </div>
+  <p class="quiz-feedback" id="quiz-feedback" aria-live="polite">Choose an answer to see the reasoning.</p>
+</section>
+
+<style>
+  .warehouse-lab {
+    --lab-bg: var(--surface);
+    --lab-text: var(--text);
+    --lab-muted: var(--muted);
+    --lab-line: var(--line);
+    --lab-accent: var(--accent);
+    --lab-accent-soft: var(--accent-soft);
+    margin: 0 0 2.8rem;
+    color: var(--lab-text);
+    font: 1rem/1.65 "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  .lab-heading { margin: 1.8rem 0 1rem; }
+  .lab-heading:first-child { margin-top: 0; }
+  .lab-heading .eyebrow, .detail-label { color: var(--lab-accent); font: 700 .68rem/1.4 "Segoe UI", Aptos, Calibri, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+  .lab-heading h2 { margin: .4rem 0 .6rem; font: 400 clamp(1.55rem, 3.6vw, 2.25rem)/1.15 Georgia, "Times New Roman", serif; letter-spacing: -.035em; }
+  .lab-heading p:last-child { max-width: 720px; margin-bottom: 0; color: var(--lab-muted); font-size: .92rem; }
+  .architecture { display: flex; align-items: stretch; gap: .45rem; margin: 1.3rem 0 1rem; }
+  .architecture-node {
+    min-width: 0;
+    flex: 1;
+    display: grid;
+    justify-items: start;
+    gap: .18rem;
+    border: 1px solid var(--lab-line);
+    border-radius: .625rem;
+    background: var(--lab-bg);
+    padding: .8rem .7rem;
+    color: var(--lab-text);
+    text-align: left;
+    cursor: pointer;
+  }
+  .architecture-node:hover, .symptom-picker button:hover, .quiz button:hover { border-color: var(--lab-accent); }
+  .architecture-node.is-active, .symptom-picker button[aria-pressed="true"] {
+    border-color: var(--lab-accent);
+    background: var(--lab-accent-soft);
+  }
+  .node-number { color: var(--lab-accent); font: 700 .65rem/1.2 Consolas, "Courier New", Courier, monospace; }
+  .architecture-node strong { font-size: .78rem; line-height: 1.2; }
+  .architecture-node small { color: var(--lab-muted); font-size: .67rem; line-height: 1.3; }
+  .architecture-arrow { align-self: center; flex: 0 0 auto; color: var(--lab-accent); font-size: 1.05rem; }
+  .layer-detail, .diagnosis-result {
+    display: grid;
+    grid-template-columns: minmax(170px, .75fr) 1.5fr;
+    gap: 1.3rem;
+    border: 1px solid var(--lab-line);
+    border-radius: 16px;
+    background: var(--lab-bg);
+    padding: 1.2rem;
+  }
+  .detail-label { margin-bottom: .45rem; }
+  .layer-detail h3, .diagnosis-result h3 { margin: 0; font: 400 1.35rem/1.2 Georgia, "Times New Roman", serif; }
+  .detail-copy p, .diagnosis-result p { margin: 0 0 .6rem; color: var(--lab-muted); font-size: .86rem; line-height: 1.65; }
+  .detail-copy p:last-child, .diagnosis-result p:last-child { margin-bottom: 0; }
+  .detail-copy strong, .diagnosis-result strong { color: var(--lab-text); }
+  .detail-watch { border-left: 2px solid var(--lab-accent); padding-left: .7rem; }
+  .diagnosis-heading { margin-top: 2.8rem; }
+  .symptom-picker, .quiz { display: flex; flex-wrap: wrap; gap: .55rem; margin: 1rem 0; }
+  .symptom-picker button, .quiz button {
+    border: 1px solid var(--lab-line);
+    border-radius: 999px;
+    background: var(--lab-bg);
+    padding: .55rem .85rem;
+    color: var(--lab-text);
+    font: 600 .78rem/1.4 "Segoe UI", Aptos, Calibri, sans-serif;
+    cursor: pointer;
+  }
+  .symptom-picker button[aria-pressed="true"] { color: var(--lab-accent); }
+  .diagnosis-result { display: block; }
+  .diagnosis-result h3 { margin-bottom: .9rem; }
+  .quiz-heading { margin-top: 2.8rem; }
+  .quiz-feedback { min-height: 3.2rem; margin: .8rem 0 0; border-left: 2px solid var(--lab-line); padding: .15rem 0 .15rem .8rem; color: var(--lab-muted); font: .85rem/1.6 "Segoe UI", Aptos, Calibri, sans-serif; }
+  .quiz-feedback.is-correct { border-color: var(--lab-accent); color: var(--lab-text); }
+  .quiz-feedback.is-wrong { border-color: var(--lab-line); color: var(--lab-muted); }
+  .warehouse-lab button:focus-visible { outline: 2px solid var(--lab-accent); outline-offset: 3px; }
+  @media (max-width: 680px) {
+    .architecture { display: grid; grid-template-columns: 1fr auto 1fr; gap: .5rem; }
+    .architecture-arrow { transform: rotate(0deg); }
+    .architecture-node { padding: .7rem .55rem; }
+    .layer-detail { grid-template-columns: 1fr; gap: .8rem; }
+    .symptom-picker { display: grid; grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 390px) {
+    .architecture { grid-template-columns: 1fr; }
+    .architecture-arrow { justify-self: center; transform: rotate(90deg); line-height: 1; }
+    .symptom-picker { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .warehouse-lab *, .warehouse-lab *::before, .warehouse-lab *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+  }
+  @media print {
+    .architecture-node, .symptom-picker button, .quiz button { background: var(--lab-bg) !important; }
+    .warehouse-lab { break-inside: avoid; }
+  }
+</style>
+
+<script>
+  type Layer = {
+    label: string;
+    title: string;
+    description: string;
+    question: string;
+    watch: string;
+  };
+  type Diagnosis = {
+    label: string;
+    title: string;
+    measure: string;
+    investigate: string;
+    assumption: string;
+  };
+
+  const layers: Record<string, Layer> = {
+    sources: {
+      label: "LAYER 01 · SOURCES",
+      title: "Where does the business record the event?",
+      description: "Operational applications, files, APIs, and event streams are designed to capture business activity—not necessarily to answer historical questions cheaply.",
+      question: "What is the source of truth, how late can data arrive, and how do updates or deletes appear?",
+      watch: "A source table is not automatically a durable analytical history."
+    },
+    ingest: {
+      label: "LAYER 02 · INGEST",
+      title: "How do changes arrive safely and repeatably?",
+      description: "Batch copies, change data capture, event streams, and APIs have different latency, ordering, and replay properties.",
+      question: "What is the watermark or change token, and can a failed batch be retried without duplicating data?",
+      watch: "Incremental does not mean correct: deletes, late events, schema changes, and replay need explicit handling."
+    },
+    store: {
+      label: "LAYER 03 · STORE & MODEL",
+      title: "Can people agree what each row and metric means?",
+      description: "Storage formats and layers serve different jobs. A warehouse model turns operational events into governed, analyzable facts and dimensions.",
+      question: "What is the fact grain, which history is preserved, and who owns the business definitions?",
+      watch: "A layer name like Gold does not prove that the data is correct, dimensional, or ready to serve."
+    },
+    compute: {
+      label: "LAYER 04 · COMPUTE",
+      title: "What plans and runs the SQL?",
+      description: "An optimizer builds a plan; distributed engines may split work across tasks and workers. Compute may be provisioned, shared, or autonomously scaled.",
+      question: "Is the delay in queueing, scanning, joining, data movement, or result delivery?",
+      watch: "Adding compute can help resource pressure; it cannot repair wrong joins, missing filters, or poor data shape."
+    },
+    serve: {
+      label: "LAYER 05 · SERVE",
+      title: "How does a person or application consume the result?",
+      description: "SQL endpoints, semantic models, BI reports, extracts, APIs, and applications each add their own caching and concurrency behavior.",
+      question: "What freshness and latency does the consumer need, and what is peak—not average—concurrency?",
+      watch: "A fast query does not guarantee a fast dashboard; model, network, visuals, and cache also matter."
+    }
+  };
+
+  const diagnoses: Record<string, Diagnosis> = {
+    "slow-query": {
+      label: "SYMPTOM · ONE QUERY IS SLOW",
+      title: "Separate execution time from queue time.",
+      measure: "Elapsed time, rows scanned, query plan, and whether the same query was fast on a smaller or warmer dataset.",
+      investigate: "Check predicates, join cardinality, statistics, file layout, skew, and data movement. In Fabric, use Query Insights and the query plan to narrow the evidence.",
+      assumption: "Adding capacity fixes a poor plan, a many-to-many join, or an avoidable full scan."
+    },
+    queue: {
+      label: "SYMPTOM · USERS ARE WAITING",
+      title: "Look for queueing and competing workloads.",
+      measure: "Arrival rate, concurrent queries, queue duration, execution duration, and which workspaces or jobs were active at the same time.",
+      investigate: "Separate interactive reads from heavy loads where possible; review capacity pressure, peak usage, workload schedules, and the platform's current scale behavior.",
+      assumption: "One bigger cluster makes every concurrent dashboard query faster. Queueing and per-query execution are different bottlenecks."
+    },
+    "wrong-total": {
+      label: "SYMPTOM · TOTALS LOOK WRONG",
+      title: "Prove the grain and join cardinality before tuning.",
+      measure: "Rows and distinct business keys before/after each join; totals grouped by keys present in both source and output.",
+      investigate: "Check whether the join is one-to-one, one-to-many, or many-to-many; inspect duplicate dimension keys, filter direction, null/unknown keys, and measure additivity.",
+      assumption: "The dashboard is wrong because of a visual or engine bug. A fan-out join can multiply a perfectly valid fact amount."
+    },
+    "stale-data": {
+      label: "SYMPTOM · DATA IS STALE",
+      title: "Trace the freshness promise end to end.",
+      measure: "Source event time, ingestion time, last successful pipeline watermark, warehouse commit time, and semantic-model/report cache or refresh time.",
+      investigate: "Check late-arriving data, failed retries, incremental-load boundaries, transformations, refresh schedules, and consumer cache behavior.",
+      assumption: "The warehouse has old data. The source, ingestion job, model refresh, or report cache may be the delayed layer."
+    }
+  };
+
+  const layerElements = {
+    label: document.querySelector<HTMLElement>("#layer-label"),
+    title: document.querySelector<HTMLElement>("#layer-title"),
+    description: document.querySelector<HTMLElement>("#layer-description"),
+    question: document.querySelector<HTMLElement>("#layer-question"),
+    watch: document.querySelector<HTMLElement>("#layer-watch")
+  };
+  const diagnosisElements = {
+    label: document.querySelector<HTMLElement>("#diagnosis-label"),
+    title: document.querySelector<HTMLElement>("#diagnosis-title"),
+    measure: document.querySelector<HTMLElement>("#diagnosis-measure"),
+    investigate: document.querySelector<HTMLElement>("#diagnosis-investigate"),
+    assumption: document.querySelector<HTMLElement>("#diagnosis-assumption")
+  };
+
+  function setText<T extends HTMLElement>(element: T | null, value: string) {
+    if (!element) throw new Error("Warehouse guide interaction is missing a target element.");
+    element.textContent = value;
+  }
+
+  document.querySelectorAll<HTMLButtonElement>("[data-layer]").forEach((button) => {
+    button.addEventListener("click", () => {
+      document.querySelectorAll("[data-layer]").forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+      const layer = layers[button.dataset.layer ?? ""];
+      if (!layer) throw new Error("Unknown warehouse architecture layer.");
+      setText(layerElements.label, layer.label);
+      setText(layerElements.title, layer.title);
+      setText(layerElements.description, layer.description);
+      setText(layerElements.question, layer.question);
+      setText(layerElements.watch, layer.watch);
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>("[data-diagnosis]").forEach((button) => {
+    button.addEventListener("click", () => {
+      document.querySelectorAll("[data-diagnosis]").forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+      const diagnosis = diagnoses[button.dataset.diagnosis ?? ""];
+      if (!diagnosis) throw new Error("Unknown warehouse diagnostic symptom.");
+      setText(diagnosisElements.label, diagnosis.label);
+      setText(diagnosisElements.title, diagnosis.title);
+      setText(diagnosisElements.measure, diagnosis.measure);
+      setText(diagnosisElements.investigate, diagnosis.investigate);
+      setText(diagnosisElements.assumption, diagnosis.assumption);
+    });
+  });
+
+  const quizFeedback = document.querySelector<HTMLElement>("#quiz-feedback");
+  document.querySelectorAll<HTMLButtonElement>("[data-quiz]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const correct = button.dataset.quiz === "grain";
+      if (!quizFeedback) throw new Error("Warehouse quiz feedback element is missing.");
+      quizFeedback.classList.toggle("is-correct", correct);
+      quizFeedback.classList.toggle("is-wrong", !correct);
+      quizFeedback.textContent = correct
+        ? "Correct. Grain is the business definition of one row. It determines which keys belong in the fact, which measures are valid, and whether joins preserve totals. Pick it before choosing the physical design."
+        : "Not first. Format and capacity matter, but neither can tell you what one fact row means. Define the grain first; then select storage and compute for the workload.";
+    });
+  });
+</script>
